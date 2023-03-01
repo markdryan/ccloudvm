@@ -16,7 +16,7 @@
 
 package client
 
-import "github.com/ciao-project/ciao/osprepare"
+import "github.com/intel/ccloudvm/osprepare"
 
 var ccloudvmClearDeps = []osprepare.PackageRequirement{
 	{BinaryName: "/usr/bin/unxz", PackageName: "os-core-update"},
@@ -44,8 +44,18 @@ var ccloudvmUbuntuDeps = []osprepare.PackageRequirement{
 	{BinaryName: "/usr/bin/ssh-keygen", PackageName: "openssh-client"},
 }
 
+var ccloudvmArchDeps = []osprepare.PackageRequirement{
+	{BinaryName: "/usr/bin/xz", PackageName: "core/xz"},
+	{BinaryName: "/usr/bin/qemu-system-x86_64", PackageName: "extra/qemu"},
+	{BinaryName: "/usr/bin/qemu-img", PackageName: "extra/qemu"},
+	{BinaryName: "/usr/bin/xorriso", PackageName: "extra/libisoburn"},
+	{BinaryName: "/usr/bin/ssh", PackageName: "core/openssh"},
+	{BinaryName: "/usr/bin/ssh-keygen", PackageName: "core/openssh"},
+}
+
 var ccloudvmDeps = map[string][]osprepare.PackageRequirement{
 	"clearlinux": ccloudvmClearDeps,
 	"fedora":     ccloudvmFedoraDeps,
 	"ubuntu":     ccloudvmUbuntuDeps,
+	"arch":       ccloudvmArchDeps,
 }

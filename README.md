@@ -17,7 +17,7 @@ pre-shipped or user supplied annotated cloud-init files.
 
 All you need to have installed on your machine is:
 
-- Go 1.9 or greater.
+- Go 1.16 or greater.
 
 The installation instructions for the latest version of Go can be
 found [here](https://golang.org/doc/install).  Once installed, ensure
@@ -50,7 +50,29 @@ create another xenial based VM you won't have to wait very long.
 It also knows about HTTP proxies and will mirror your host computer's proxy
 settings inside the VMs it creates.
 
-Once it's finished you'll be able to connect to the the VM via SSH
+There's currently a bug which may cause the ccloudvm create command to fail
+if the user on the host computer is not a member of the kvm group.  The
+failure message will look something like this.
+
+```
+Booting VM with 6 GB RAM and 2 cpus
+Failed to launch qemu : exit status 1, Could not access KVM kernel module: Permission denied
+failed to initialize KVM: Permission denied
+```
+
+You can resolve this problem by adding yourself to the group of users
+permitted to access the kvm device. Assuming that this group is called
+kvm you would execute
+
+```
+$ sudo gpasswd -a $USER kvm
+```
+
+and then close your existing terminal and open a new one.  Typing groups
+in the new terminal should confirm that you are now a member of the kvm
+group.
+
+Once the ccloudvm create command is finished you'll be able to connect to the the VM via SSH
 using the following command.
 
 ```
@@ -97,12 +119,14 @@ can specify:
   to run on the first boot of the VM.  This file is used to create
   user accounts, install packages and configure the VM.
 
-ccloudvm ships with a number of workloads for creating VMs based on standard images,
-such as Ubuntu 16.04 and Fedora 25.  Users are also free to create their own workloads.
-Standard workloads are stored in $GOPATH/src/github.com/intel/ccloudvm/workloads.
-User created workloads are stored in ~/.ccloudvm/workloads.  ccloudvm always checks the
-~/.ccloudvm/workloads directory first so if a workload exists in both directories
-with the same name, ccloudvm will use the workload in ~/.ccloudvm/workloads.
+ccloudvm ships with a number of workloads for creating VMs based on standard
+images, such as Ubuntu 16.04 and Fedora 25.  Users are also free to create
+their own workloads.  Standard workloads defined at
+$GOPATH/src/github.com/intel/ccloudvm/workloads are stored in the ccvm binary
+as data files.  User created workloads are stored in ~/.ccloudvm/workloads.
+ccloudvm always checks the ~/.ccloudvm/workloads directory first so if a
+workload exists in both directories with the same name, ccloudvm will use the
+workload in ~/.ccloudvm/workloads.
 
 When creating a new instance via the create command the user must specify a workload.
 This can be done by providing the name of a workload, present in one of the two directories
@@ -743,3 +767,23 @@ Removing ccloudvm service
 ```
 
 Once you run ccloudvm teardown, ccloudvm will be unusable until you run ccloudvm setup.
+
+## Misc
+
+### bash completion
+The script that might help with auto completion is located
+[here](./scripts/ccloudvm_bashcomplete). This can be either placed at
+`/etc/bash_completion.d/` of your machine or as described below.
+
+Note: you will need to start a new shell to be able to make use of auto
+completion.
+
+```
+$ mkdir ~/.bash_completion.d
+$ cp scripts/ccloudvm_bashcomplete ~/.bash_completion.d/ccloudvm
+$ cat << \EOF > ~/.bash_completion
+for file in ~/.bash_completion.d/*; do
+  [ -f "${file}" ] && . ${file}
+done
+EOF
+```
