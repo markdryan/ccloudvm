@@ -317,7 +317,12 @@ func createRootfs(ctx context.Context, backingImage, instanceDir string, disk in
 	}
 	diskParam := fmt.Sprintf("%dG", disk)
 	params := make([]string, 0, 32)
-	params = append(params, "create", "-f", "qcow2", "-o", "backing_file="+backingImage,
+	params = append(params, "create", "-F", "qcow2", "-f", "qcow2", "-o", "backing_file="+backingImage,
 		vmImage, diskParam)
-	return exec.CommandContext(ctx, "qemu-img", params...).Run()
+	err := exec.CommandContext(ctx, "qemu-img", params...).Run()
+	if err != nil {
+		return errors.Wrapf(err, "qemu-image %v failed", params)
+	}
+
+	return nil
 }
