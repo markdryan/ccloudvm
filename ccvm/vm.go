@@ -41,7 +41,8 @@ const (
 	urlParam          = "url"
 )
 
-func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec) error {
+func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, cpu string) error {
+	qemuExe := ""
 	disconnectedCh := make(chan struct{})
 	socket := path.Join(ws.instanceDir, "socket")
 	qmp, _, err := qemu.QMPStart(ctx, socket, qemu.QMPConfig{}, disconnectedCh)
@@ -54,6 +55,10 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec) e
 	if _, err := os.Stat(BIOSPath); err != nil {
 		BIOSPath = ""
 	}
+	KernelPath := path.Join(ws.instanceDir, "Kernel")
+	if _, err := os.Stat(KernelPath); err != nil {
+		KernelPath = ""
+	}
 	vmImage := path.Join(ws.instanceDir, "image.qcow2")
 	isoPath := path.Join(ws.instanceDir, "config.iso")
 	memParam := fmt.Sprintf("%dM", in.MemMiB)
@@ -63,13 +68,24 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec) e
 		"-m", memParam, "-smp", CPUsParam,
 		"-drive", fmt.Sprintf("file=%s,if=virtio,aio=threads,format=qcow2", vmImage),
 		"-drive", fmt.Sprintf("file=%s,if=virtio,media=cdrom", isoPath),
-		"-daemonize", "-enable-kvm", "-cpu", "host",
+		"-daemonize",
 		"-net", "nic,model=virtio",
 		"-device", "virtio-rng-pci",
 	}
 
+	if cpu == "" {
+		args = append(args, "-enable-kvm", "-cpu", "host")
+	} else if cpu == "virtual" {
+		args = append(args, "-machine", "virt")
+		qemuExe = "qemu-system-riscv64"
+	}
+
 	if BIOSPath != "" {
 		args = append(args, "-bios", BIOSPath)
+	}
+
+	if KernelPath != "" {
+		args = append(args, "-kernel", KernelPath)
 	}
 
 	for i, m := range in.Mounts {
@@ -91,7 +107,11 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec) e
 	}
 
 	var b bytes.Buffer
-	b.WriteString("user")
+	if cpu != "" {
+		b.WriteString("user,id=usernet")
+	} else {
+		b.WriteString("user")
+	}
 	for _, p := range in.PortMappings {
 		b.WriteString(fmt.Sprintf(",hostfwd=tcp:%s:%d-:%d", in.HostIP, p.Host, p.Guest))
 	}
@@ -102,17 +122,26 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec) e
 	b.WriteString(fmt.Sprintf(",hostname=%s", name))
 
 	netParam := b.String()
-	args = append(args, "-net", netParam)
+	if cpu == "" {
+		args = append(args, "-net", netParam)
+	} else {
+		args = append(args, "-netdev", netParam)
+		args = append(args, "-device", "virtio-net-device,netdev=usernet")
+	}
 
 	if in.Qemuport != 0 {
 		args = append(args, "-chardev",
-			fmt.Sprintf("socket,host=localhost,port=%d,id=ccld0,server,nowait", in.Qemuport),
-			"-device", "isa-serial,chardev=ccld0")
+			fmt.Sprintf("socket,host=localhost,port=%d,id=ccld0,server,nowait", in.Qemuport))
+		if cpu == "virtual" {
+			args = append(args, "-serial", "chardev:ccld0")
+		} else {
+			args = append(args, "-device", "isa-serial,chardev=ccld0")
+		}
 	}
 
 	args = append(args, "-display", "none", "-vga", "none")
 
-	output, err := qemu.LaunchCustomQemu(ctx, "", args, nil, nil, nil)
+	output, err := qemu.LaunchCustomQemu(ctx, qemuExe, args, nil, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Failed to launch qemu : %v, %s", err, output)
 	}

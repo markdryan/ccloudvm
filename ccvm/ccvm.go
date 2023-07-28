@@ -136,13 +136,14 @@ func downloadProgress(resultCh chan interface{}, p progress) {
 }
 
 func downloadImages(ctx context.Context, wkld *workload, transport *http.Transport,
-	resultCh chan interface{}, downloadCh chan<- downloadRequest) (string, string, error) {
+	resultCh chan interface{}, downloadCh chan<- downloadRequest) (string, string, string, error) {
 	var BIOSPath string
+	var KernelPath string
 
 	if wkld.spec.BIOS != "" {
 		BIOSURL, err := url.Parse(wkld.spec.BIOS)
 		if err != nil {
-			return "", "", errors.Wrapf(err, "Invalid URL %s", wkld.spec.BIOS)
+			return "", "", "", errors.Wrapf(err, "Invalid URL %s", wkld.spec.BIOS)
 		}
 		if BIOSURL.Scheme == "file" {
 			BIOSPath = BIOSURL.Path
@@ -157,10 +158,20 @@ func downloadImages(ctx context.Context, wkld *workload, transport *http.Transpo
 					downloadProgress(resultCh, p)
 				})
 			if err != nil {
-				return "", "", err
+				return "", "", "", err
 			}
 		} else {
-			return "", "", errors.Errorf("Invalid URL %s", wkld.spec.BIOS)
+			return "", "", "", errors.Errorf("Invalid URL %s", wkld.spec.BIOS)
+		}
+	}
+
+	if wkld.spec.Kernel != "" {
+		KernelURL, err := url.Parse(wkld.spec.Kernel)
+		if err != nil {
+			return "", "", "", errors.Wrapf(err, "Invalid URL %s", wkld.spec.Kernel)
+		}
+		if KernelURL.Scheme == "file" {
+			KernelPath = KernelURL.Path
 		}
 	}
 
@@ -174,16 +185,16 @@ func downloadImages(ctx context.Context, wkld *workload, transport *http.Transpo
 			downloadProgress(resultCh, p)
 		})
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
-	return BIOSPath, qcowPath, nil
+	return BIOSPath, KernelPath, qcowPath, nil
 }
 
 func createImages(ctx context.Context, wkld *workload, ws *workspace, args *types.CreateArgs,
 	transport *http.Transport, resultCh chan interface{}, downloadCh chan<- downloadRequest) error {
 
-	srcBIOSPath, qcowPath, err := downloadImages(ctx, wkld, transport, resultCh, downloadCh)
+	srcBIOSPath, srcKernelPath, qcowPath, err := downloadImages(ctx, wkld, transport, resultCh, downloadCh)
 	if err != nil {
 		return err
 	}
@@ -193,6 +204,14 @@ func createImages(ctx context.Context, wkld *workload, ws *workspace, args *type
 		err := exec.Command("cp", srcBIOSPath, destBIOSPath).Run()
 		if err != nil {
 			return errors.Wrapf(err, "Failed to copy BIOS file %s", srcBIOSPath)
+		}
+	}
+
+	if srcKernelPath != "" {
+		destKernelPath := path.Join(ws.instanceDir, "Kernel")
+		err := exec.Command("cp", srcKernelPath, destKernelPath).Run()
+		if err != nil {
+			return errors.Wrapf(err, "Failed to copy Kernel file %s", srcKernelPath)
 		}
 	}
 
@@ -295,7 +314,7 @@ func (c ccvmBackend) createInstance(ctx context.Context, resultCh chan interface
 
 	outputBootingMessage(args, wkld, ws, resultCh)
 
-	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM)
+	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM, wkld.spec.CPU)
 	if err != nil {
 		return err
 	}
@@ -354,7 +373,7 @@ func (c ccvmBackend) start(ctx context.Context, name string, customSpec *types.V
 
 	fmt.Printf("Booting VM with %d MiB RAM and %d cpus\n", in.MemMiB, in.CPUs)
 
-	err = bootVM(ctx, ws, name, in)
+	err = bootVM(ctx, ws, name, in, wkld.spec.CPU)
 	if err != nil {
 		return err
 	}
