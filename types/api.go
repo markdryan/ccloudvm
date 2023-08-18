@@ -30,6 +30,8 @@ type CreateArgs struct {
 	GoPath       string
 	Kernel       string
 	KernelArgs   string
+	QEMUPath     string
+	CPU          string
 }
 
 // CreateResult contains information about the status of an instance

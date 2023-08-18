@@ -220,12 +220,20 @@ func (wkld *workload) merge(parent *workload) {
 		wkld.spec.CPU = parent.spec.CPU
 	}
 
+	if wkld.spec.Machine == "" {
+		wkld.spec.Machine = parent.spec.Machine
+	}
+
 	if wkld.spec.Kernel == "" {
 		wkld.spec.Kernel = parent.spec.Kernel
 	}
 
 	if wkld.spec.KernelArgs == "" {
 		wkld.spec.KernelArgs = parent.spec.KernelArgs
+	}
+
+	if wkld.spec.QEMUPath == "" {
+		wkld.spec.QEMUPath = parent.spec.QEMUPath
 	}
 
 	if wkld.spec.InitRD == "" {

@@ -47,7 +47,9 @@ type workloadSpec struct {
 	Kernel        string       `yaml:"kernel"`
 	InitRD        string       `yaml:"initrd"`
 	CPU           string       `yaml:"cpu"`
+	Machine       string       `yaml:"machine"`
 	VM            types.VMSpec `yaml:"vm"`
+	QEMUPath      string       `yaml:"qemu"`
 	Inherits      string       `yaml:"inherits"`
 }
 

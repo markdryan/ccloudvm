@@ -85,6 +85,14 @@ func prepareCreate(ctx context.Context, args *types.CreateArgs) (*workload, *wor
 		wkld.spec.KernelArgs = args.KernelArgs
 	}
 
+	if args.QEMUPath != "" {
+		wkld.spec.QEMUPath = args.QEMUPath
+	}
+
+	if args.CPU != "" {
+		wkld.spec.CPU = args.CPU
+	}
+
 	in := &wkld.spec.VM
 
 	err = in.MergeCustom(&args.CustomSpec)
@@ -342,7 +350,7 @@ func (c ccvmBackend) createInstance(ctx context.Context, resultCh chan interface
 
 	outputBootingMessage(args, wkld, ws, resultCh)
 
-	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM, wkld.spec.CPU, wkld.spec.KernelArgs)
+	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM, wkld.spec.CPU, wkld.spec.Machine, wkld.spec.KernelArgs, wkld.spec.QEMUPath)
 	if err != nil {
 		return err
 	}
@@ -401,7 +409,7 @@ func (c ccvmBackend) start(ctx context.Context, name string, customSpec *types.V
 
 	fmt.Printf("Booting VM with %d MiB RAM and %d cpus\n", in.MemMiB, in.CPUs)
 
-	err = bootVM(ctx, ws, name, in, wkld.spec.CPU, wkld.spec.KernelArgs)
+	err = bootVM(ctx, ws, name, in, wkld.spec.CPU, wkld.spec.Machine, wkld.spec.KernelArgs, wkld.spec.QEMUPath)
 	if err != nil {
 		return err
 	}

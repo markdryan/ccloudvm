@@ -3,7 +3,7 @@ base_image_url: https://cloud-images.ubuntu.com/mantic/current/mantic-server-clo
 base_image_name: Ubuntu 23.10
 bios: file://usr/lib/riscv64-linux-gnu/opensbi/generic/fw_jump.bin
 kernel: file://usr/lib/u-boot/qemu-riscv64_smode/uboot.elf
-cpu: virtual
+machine: virt
 vm:
   disk_gib: 16
 ...

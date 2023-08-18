@@ -41,7 +41,7 @@ const (
 	urlParam          = "url"
 )
 
-func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, cpu, kernelArgs string) error {
+func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, cpu, machine, kernelArgs, qemuPath string) error {
 	qemuExe := ""
 	disconnectedCh := make(chan struct{})
 	socket := path.Join(ws.instanceDir, "socket")
@@ -77,11 +77,30 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 		"-device", "virtio-rng-pci",
 	}
 
-	if cpu == "" {
-		args = append(args, "-enable-kvm", "-cpu", "host")
-	} else if cpu == "virtual" {
-		args = append(args, "-machine", "virt")
+	if machine == "" {
+		args = append(args, "-enable-kvm")
+		if cpu == "" {
+			args = append(args, "-cpu", "host")
+		} else {
+			args = append(args, "-cpu", cpu)
+		}
+	} else {
+		args = append(args, "-machine", machine)
+
+		if cpu != "" {
+			args = append(args, "-cpu", cpu)
+		}
+
+		/*
+		 * Hacky, I need to maybe to a arch specific version of this file.
+		 * See also the checks on machine below
+		 */
+
 		qemuExe = "qemu-system-riscv64"
+	}
+
+	if qemuPath != "" {
+		qemuExe = qemuPath
 	}
 
 	if BIOSPath != "" {
@@ -119,7 +138,7 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 	}
 
 	var b bytes.Buffer
-	if cpu != "" {
+	if machine != "" {
 		b.WriteString("user,id=usernet")
 	} else {
 		b.WriteString("user")
@@ -134,7 +153,7 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 	b.WriteString(fmt.Sprintf(",hostname=%s", name))
 
 	netParam := b.String()
-	if cpu == "" {
+	if machine == "" {
 		args = append(args, "-net", netParam)
 	} else {
 		args = append(args, "-netdev", netParam)
@@ -144,7 +163,7 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 	if in.Qemuport != 0 {
 		args = append(args, "-chardev",
 			fmt.Sprintf("socket,host=localhost,port=%d,id=ccld0,server,nowait", in.Qemuport))
-		if cpu == "virtual" {
+		if machine != "" {
 			args = append(args, "-serial", "chardev:ccld0")
 		} else {
 			args = append(args, "-device", "isa-serial,chardev=ccld0")
