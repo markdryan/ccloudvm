@@ -77,6 +77,14 @@ func prepareCreate(ctx context.Context, args *types.CreateArgs) (*workload, *wor
 		return nil, nil, nil, err
 	}
 
+	if args.Kernel != "" {
+		wkld.spec.Kernel = args.Kernel
+	}
+
+	if args.KernelArgs != "" {
+		wkld.spec.KernelArgs = args.KernelArgs
+	}
+
 	in := &wkld.spec.VM
 
 	err = in.MergeCustom(&args.CustomSpec)

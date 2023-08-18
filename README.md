@@ -246,6 +246,19 @@ fields are currently defined:
 - base_image_name : Friendly name for the base image.  This is optional.
 - vm              : Contains information about creating and booting the instance.
 - bios            : A URI (file, http, or https) pointing to the BIOS file, e.g, OVMF.fd, with which to boot the image.  Should be omitted for legacy boots.
+- kernel          : A URI (file, http, or https) pointing to a kernel file to use instead of the kernel image in the rootfs.
+- kernel_args     : arguments to pass to the kernel.
+- initrd          : A URI (file, http, or https) pointing to an initrd to use
+
+Normally, there is no need to specify kernel, kernel_args or initrd.  These settings are only required
+when you want to use a custom kernel with a cloud image.  Note ccloudvm uses the cdrom drive to store the
+cloud-config data, so the guest kernel you supply most support CDROMs.  The following kernel config options
+are required.
+
+```
+CONFIG_CDROM=y
+CONFIG_ISO9660_FS=y
+```
 
 The vm field supports a number of child fields.
 
@@ -556,6 +569,8 @@ will let you track qemu logs by running the below command
 nc localhost 9999
 
 You can also allow a login via this port in case ssh fails to work by modifying the workload file and changing lock_passwd to false and providing a passwd: "....." entry following that.
+
+Finally, create also accepts -kernel and -kernalargs parameters that allow the user to provide a custom kernel on the command line.
 
 #### Port mappings, Mounts and Drives
 

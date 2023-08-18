@@ -288,7 +288,7 @@ func getProxy(upper, lower string) (string, error) {
 }
 
 // Create sets up the VM
-func Create(ctx context.Context, instanceName, workloadName string, debug bool, update bool, customSpec *types.VMSpec) error {
+func Create(ctx context.Context, instanceName, workloadName string, debug bool, update bool, customSpec *types.VMSpec, kernel, kernelArgs string) error {
 	HTTPProxy, err := getProxy("HTTP_PROXY", "http_proxy")
 	if err != nil {
 		return err
@@ -329,6 +329,8 @@ func Create(ctx context.Context, instanceName, workloadName string, debug bool, 
 					HTTPSProxy:   HTTPSProxy,
 					NoProxy:      noProxy,
 					GoPath:       goPath,
+					Kernel:       kernel,
+					KernelArgs:   kernelArgs,
 				},
 				&id)
 			return id, err

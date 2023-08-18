@@ -55,6 +55,8 @@ var createMOptsSpec multiOptions
 var createDebug bool
 var createPackageUpgrade bool
 var createHostIP ipAddr
+var kernel string
+var kernelArgs string
 
 var createCmd = &cobra.Command{
 	Use:   "create",
@@ -66,7 +68,7 @@ var createCmd = &cobra.Command{
 
 		mergeVMOptions(&createSpec, &createMOptsSpec)
 		createSpec.HostIP = net.IP(createHostIP)
-		return client.Create(ctx, instanceName, args[0], createDebug, createPackageUpgrade, &createSpec)
+		return client.Create(ctx, instanceName, args[0], createDebug, createPackageUpgrade, &createSpec, kernel, kernelArgs)
 	},
 }
 
@@ -82,4 +84,6 @@ func init() {
 	createCmd.Flags().BoolVar(&createDebug, "debug", false, "Enable debugging mode")
 	createCmd.Flags().BoolVar(&createPackageUpgrade, "package-upgrade", false, "Hint as to whether to upgrade packages on creation")
 	createCmd.Flags().Var(&createHostIP, "hostip", "Host IP address on which instance services will be exposed")
+	createCmd.Flags().StringVar(&kernel, "kernel", "", "URL of kernel to use")
+	createCmd.Flags().StringVar(&kernelArgs, "kernelargs", "", "Arguments to pass to kernel")
 }

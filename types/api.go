@@ -28,6 +28,8 @@ type CreateArgs struct {
 	HTTPSProxy   string
 	NoProxy      string
 	GoPath       string
+	Kernel       string
+	KernelArgs   string
 }
 
 // CreateResult contains information about the status of an instance
