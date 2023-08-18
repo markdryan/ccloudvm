@@ -216,6 +216,22 @@ func (wkld *workload) merge(parent *workload) {
 		wkld.spec.NeedsNestedVM = parent.spec.NeedsNestedVM
 	}
 
+	if wkld.spec.CPU == "" {
+		wkld.spec.CPU = parent.spec.CPU
+	}
+
+	if wkld.spec.Kernel == "" {
+		wkld.spec.Kernel = parent.spec.Kernel
+	}
+
+	if wkld.spec.KernelArgs == "" {
+		wkld.spec.KernelArgs = parent.spec.KernelArgs
+	}
+
+	if wkld.spec.InitRD == "" {
+		wkld.spec.InitRD = parent.spec.InitRD
+	}
+
 	wkld.spec.VM.Merge(&parent.spec.VM)
 }
 
