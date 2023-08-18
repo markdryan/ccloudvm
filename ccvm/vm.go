@@ -41,7 +41,7 @@ const (
 	urlParam          = "url"
 )
 
-func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, cpu string) error {
+func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, cpu, kernelArgs string) error {
 	qemuExe := ""
 	disconnectedCh := make(chan struct{})
 	socket := path.Join(ws.instanceDir, "socket")
@@ -55,9 +55,13 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 	if _, err := os.Stat(BIOSPath); err != nil {
 		BIOSPath = ""
 	}
-	KernelPath := path.Join(ws.instanceDir, "Kernel")
-	if _, err := os.Stat(KernelPath); err != nil {
-		KernelPath = ""
+	kernelPath := path.Join(ws.instanceDir, "Kernel")
+	if _, err := os.Stat(kernelPath); err != nil {
+		kernelPath = ""
+	}
+	initRDPath := path.Join(ws.instanceDir, "initRD")
+	if _, err := os.Stat(initRDPath); err != nil {
+		initRDPath = ""
 	}
 	vmImage := path.Join(ws.instanceDir, "image.qcow2")
 	isoPath := path.Join(ws.instanceDir, "config.iso")
@@ -84,8 +88,16 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 		args = append(args, "-bios", BIOSPath)
 	}
 
-	if KernelPath != "" {
-		args = append(args, "-kernel", KernelPath)
+	if kernelPath != "" {
+		args = append(args, "-kernel", kernelPath)
+	}
+
+	if kernelArgs != "" {
+		args = append(args, "-append", kernelArgs)
+	}
+
+	if initRDPath != "" {
+		args = append(args, "-initrd", initRDPath)
 	}
 
 	for i, m := range in.Mounts {

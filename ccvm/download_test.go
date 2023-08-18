@@ -213,13 +213,13 @@ func testDownloadImages(ctx context.Context, t *testing.T, downloadCh chan<- dow
 
 	resultCh := make(chan interface{})
 	go func() {
-		img, bios, err := downloadImages(ctx, wkld, http.DefaultTransport.(*http.Transport),
+		img, err := downloadImages(ctx, wkld, http.DefaultTransport.(*http.Transport),
 			resultCh, downloadCh)
 		if err != nil {
 			t.Errorf("Failed to download images: %v", err)
 		}
-		if len(img) == 0 || len(bios) == 0 {
-			t.Errorf("One the paths is empty img=%s bios=%s", img, bios)
+		if len(img.qCOW) == 0 || len(img.BIOS) == 0 {
+			t.Errorf("One the paths is empty img=%s bios=%s", img.qCOW, img.BIOS)
 		}
 		close(resultCh)
 	}()
@@ -230,7 +230,7 @@ func testDownloadImages(ctx context.Context, t *testing.T, downloadCh chan<- dow
 	wkld.spec.BIOS = "ftp://" + addr + "/download/bios"
 	resultCh = make(chan interface{})
 	go func() {
-		_, _, err := downloadImages(ctx, wkld, http.DefaultTransport.(*http.Transport),
+		_, err := downloadImages(ctx, wkld, http.DefaultTransport.(*http.Transport),
 			resultCh, downloadCh)
 		if err == nil {
 			t.Errorf("Expected downloadImages with bad BIOS URL to fail")
