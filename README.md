@@ -1,8 +1,7 @@
 # Configurable Cloud VM (ccloudvm)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/intel/ccloudvm)](https://goreportcard.com/report/github.com/intel/ccloudvm)
-[![Build Status](https://travis-ci.org/intel/ccloudvm.svg?branch=master)](https://travis-ci.org/intel/ccloudvm)
-[![Coverage Status](https://coveralls.io/repos/github/intel/ccloudvm/badge.svg?branch=master)](https://coveralls.io/github/intel/ccloudvm?branch=master)
+> [!NOTE]
+> This is a modified version of the README.md file found at github.com/intel/ccloudvm
 
 ## Introduction
 
