@@ -192,7 +192,7 @@ func TestSystem(t *testing.T) {
 	name := makeRandomName() + "-test"
 	createArgs := &types.CreateArgs{
 		Name:         name,
-		WorkloadName: "semaphore",
+		WorkloadName: "unittest",
 		CustomSpec:   *vmSpec,
 		Debug:        true,
 	}
