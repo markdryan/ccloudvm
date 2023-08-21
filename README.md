@@ -249,19 +249,21 @@ fields are currently defined:
 - kernel          : A URI (file, http, or https) pointing to a kernel file to use instead of the kernel image in the rootfs.
 - kernel_args     : arguments to pass to the kernel.
 - initrd          : A URI (file, http, or https) pointing to an initrd to use
-- qemu_path       : Full path to the QEMU binary to use
+- qemu            : Executable name or full path to the QEMU binary to use
 - machine         : can be used to specify a value for QEMU's --machine option
 - cpu             : can be used to specify a value for QEMU's --cpu option.  On X86 "host" will be used if not specified.
 
 Normally, there is no need to specify kernel, kernel_args or initrd.  These settings are only required
 when you want to use a custom kernel with a cloud image.  Note ccloudvm uses the cdrom drive to store the
-cloud-config data, so the guest kernel you supply most support CDROMs.  The following kernel config options
+cloud-config data, so the guest kernel you supply must support CDROMs.  The following kernel config options
 are required.
 
 ```
 CONFIG_CDROM=y
 CONFIG_ISO9660_FS=y
 ```
+
+The qemu field must be provided if the machine field is specified.
 
 The vm field supports a number of child fields.
 

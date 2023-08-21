@@ -84,6 +84,10 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 		} else {
 			args = append(args, "-cpu", cpu)
 		}
+
+		if qemuPath != "" {
+			qemuExe = qemuPath
+		}
 	} else {
 		args = append(args, "-machine", machine)
 
@@ -91,15 +95,10 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 			args = append(args, "-cpu", cpu)
 		}
 
-		/*
-		 * Hacky, I need to maybe to a arch specific version of this file.
-		 * See also the checks on machine below
-		 */
+		if qemuPath == "" {
+			return fmt.Errorf("qemu_path must be specified --machine is set")
+		}
 
-		qemuExe = "qemu-system-riscv64"
-	}
-
-	if qemuPath != "" {
 		qemuExe = qemuPath
 	}
 
