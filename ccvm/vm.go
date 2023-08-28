@@ -31,8 +31,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/intel/ccloudvm/types"
 	"github.com/intel/govmm/qemu"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 )
 

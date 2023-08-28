@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -34,7 +36,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-systemd/activation"
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 )
 

@@ -25,7 +25,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 )

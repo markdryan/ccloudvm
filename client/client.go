@@ -37,8 +37,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/intel/ccloudvm/osprepare"
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/osprepare"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 )
 

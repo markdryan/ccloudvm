@@ -14,9 +14,11 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package client
 
-import "github.com/intel/ccloudvm/osprepare"
+import "github.com/markdryan/ccloudvm/osprepare"
 
 var ccloudvmClearDeps = []osprepare.PackageRequirement{
 	{BinaryName: "/usr/bin/unxz", PackageName: "os-core-update"},

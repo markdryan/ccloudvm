@@ -1,5 +1,8 @@
 # Contributing to Configurable Cloud VM
 
+> [!NOTE]
+> This is a modified version of the README.md file found at github.com/intel/ccloudvm
+
 Configurable Cloud VM is an open source project licensed under the [Apache v2 License] (https://opensource.org/licenses/Apache-2.0)
 
 ## Coding Style
@@ -58,5 +61,5 @@ We request you give quality assurance some consideration by:
 ## Issue tracking
 
 If you have a problem, please let us know.  If it's a bug not already documented, by all means please [open an
-issue in github](https://github.com/intel/ccloudvm/issues/new) so we all get visibility
+issue in github](https://github.com/markdryan/ccloudvm/issues/new) so we all get visibility
 the problem and work toward resolution.
