@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -30,8 +32,8 @@ import (
 	"text/template"
 
 	"github.com/ciao-project/ciao/uuid"
-	"github.com/intel/ccloudvm/types"
 	"github.com/intel/govmm/qemu"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 )
 

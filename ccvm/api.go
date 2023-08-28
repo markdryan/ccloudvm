@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -22,7 +24,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 )
 
 // ServerAPI exposes an RPC based API to the cccloudvm client.  This API can
@@ -38,7 +40,6 @@ import (
 //
 // Start -> id = 2
 // StartResult(2)
-//
 type ServerAPI struct {
 	signalCh chan os.Signal
 	actionCh chan interface{}

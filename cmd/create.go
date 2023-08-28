@@ -22,8 +22,8 @@ import (
 	"flag"
 	"net"
 
-	"github.com/intel/ccloudvm/client"
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/client"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

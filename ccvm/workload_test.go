@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -23,7 +25,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pmezard/go-difflib/difflib"
 )
 

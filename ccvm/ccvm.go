@@ -30,7 +30,7 @@ import (
 	"strings"
 
 	"github.com/ciao-project/ciao/deviceinfo"
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 	"github.com/pkg/errors"
 )
 

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -25,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/intel/ccloudvm/types"
+	"github.com/markdryan/ccloudvm/types"
 )
 
 var errCancelled = errors.New("Cancelled")

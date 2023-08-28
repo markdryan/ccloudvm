@@ -14,9 +14,11 @@
 // limitations under the License.
 */
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
-import "github.com/intel/ccloudvm/cmd"
+import "github.com/markdryan/ccloudvm/cmd"
 
 func main() {
 	cmd.Execute()

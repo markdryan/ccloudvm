@@ -31,12 +31,12 @@ $ export PATH=$PATH:$(go env GOPATH)/bin
 Then, to create a new Ubuntu 16.04 VM, simply type
 
 ```
-$ go get github.com/intel/ccloudvm/...
+$ go install github.com/intel/ccloudvm/...@latest
 $ ccloudvm setup
 $ ccloudvm create xenial
 ```
 
-The go get command downloads, builds and installs ccloudvm.  The
+The go install command downloads, builds and installs ccloudvm.  The
 ccloudvm setup command installs some needed dependencies on your local
 PC such as qemu and xorriso, and initialises a systemd user service.
 The ccloudvm create command downloads an Ubuntu Cloud Image and

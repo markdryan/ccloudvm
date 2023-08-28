@@ -14,10 +14,12 @@
 // limitations under the License.
 */
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package cmd
 
 import (
-	"github.com/intel/ccloudvm/client"
+	"github.com/markdryan/ccloudvm/client"
 	"github.com/spf13/cobra"
 )
 
