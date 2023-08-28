@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -214,6 +216,30 @@ func (wkld *workload) merge(parent *workload) {
 	// Always better to require nested VM that not.
 	if !wkld.spec.NeedsNestedVM {
 		wkld.spec.NeedsNestedVM = parent.spec.NeedsNestedVM
+	}
+
+	if wkld.spec.CPU == "" {
+		wkld.spec.CPU = parent.spec.CPU
+	}
+
+	if wkld.spec.Machine == "" {
+		wkld.spec.Machine = parent.spec.Machine
+	}
+
+	if wkld.spec.Kernel == "" {
+		wkld.spec.Kernel = parent.spec.Kernel
+	}
+
+	if wkld.spec.KernelArgs == "" {
+		wkld.spec.KernelArgs = parent.spec.KernelArgs
+	}
+
+	if wkld.spec.QEMUPath == "" {
+		wkld.spec.QEMUPath = parent.spec.QEMUPath
+	}
+
+	if wkld.spec.InitRD == "" {
+		wkld.spec.InitRD = parent.spec.InitRD
 	}
 
 	wkld.spec.VM.Merge(&parent.spec.VM)

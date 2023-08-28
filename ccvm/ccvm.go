@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -77,6 +79,22 @@ func prepareCreate(ctx context.Context, args *types.CreateArgs) (*workload, *wor
 		return nil, nil, nil, err
 	}
 
+	if args.Kernel != "" {
+		wkld.spec.Kernel = args.Kernel
+	}
+
+	if args.KernelArgs != "" {
+		wkld.spec.KernelArgs = args.KernelArgs
+	}
+
+	if args.QEMUPath != "" {
+		wkld.spec.QEMUPath = args.QEMUPath
+	}
+
+	if args.CPU != "" {
+		wkld.spec.CPU = args.CPU
+	}
+
 	in := &wkld.spec.VM
 
 	err = in.MergeCustom(&args.CustomSpec)
@@ -135,36 +153,59 @@ func downloadProgress(resultCh chan interface{}, p progress) {
 	}
 }
 
-func downloadImages(ctx context.Context, wkld *workload, transport *http.Transport,
-	resultCh chan interface{}, downloadCh chan<- downloadRequest) (string, string, error) {
-	var BIOSPath string
+type imagePaths struct {
+	qCOW   string
+	BIOS   string
+	kernel string
+	initRD string
+}
 
-	if wkld.spec.BIOS != "" {
-		BIOSURL, err := url.Parse(wkld.spec.BIOS)
-		if err != nil {
-			return "", "", errors.Wrapf(err, "Invalid URL %s", wkld.spec.BIOS)
-		}
-		if BIOSURL.Scheme == "file" {
-			BIOSPath = BIOSURL.Path
-		} else if BIOSURL.Scheme == "http" || BIOSURL.Scheme == "https" {
-			BIOSPath, err = downloadFile(ctx, downloadCh, transport, wkld.spec.BIOS,
-				func(firstDownload bool, p progress) {
-					if firstDownload {
-						resultCh <- types.CreateResult{
-							Line: fmt.Sprintf("Downloading %s\n", wkld.spec.BIOS),
-						}
+func downloadOrCopy(ctx context.Context, imageURL string, transport *http.Transport,
+	resultCh chan interface{}, downloadCh chan<- downloadRequest) (string, error) {
+	if imageURL == "" {
+		return "", nil
+	}
+	URL, err := url.Parse(imageURL)
+	if err != nil {
+		return "", errors.Wrapf(err, "Invalid URL %s", imageURL)
+	}
+	if URL.Scheme == "file" {
+		return URL.Path, nil
+	} else if URL.Scheme == "http" || URL.Scheme == "https" {
+		return downloadFile(ctx, downloadCh, transport, imageURL,
+			func(firstDownload bool, p progress) {
+				if firstDownload {
+					resultCh <- types.CreateResult{
+						Line: fmt.Sprintf("Downloading %s\n", imageURL),
 					}
-					downloadProgress(resultCh, p)
-				})
-			if err != nil {
-				return "", "", err
-			}
-		} else {
-			return "", "", errors.Errorf("Invalid URL %s", wkld.spec.BIOS)
-		}
+				}
+				downloadProgress(resultCh, p)
+			})
+	}
+	return "", errors.Errorf("Invalid URL %s", imageURL)
+}
+
+func downloadImages(ctx context.Context, wkld *workload, transport *http.Transport,
+	resultCh chan interface{}, downloadCh chan<- downloadRequest) (imagePaths, error) {
+	var iPaths imagePaths
+	var err error
+
+	iPaths.BIOS, err = downloadOrCopy(ctx, wkld.spec.BIOS, transport, resultCh, downloadCh)
+	if err != nil {
+		return iPaths, err
 	}
 
-	qcowPath, err := downloadFile(ctx, downloadCh, transport,
+	iPaths.kernel, err = downloadOrCopy(ctx, wkld.spec.Kernel, transport, resultCh, downloadCh)
+	if err != nil {
+		return imagePaths{}, err
+	}
+
+	iPaths.initRD, err = downloadOrCopy(ctx, wkld.spec.InitRD, transport, resultCh, downloadCh)
+	if err != nil {
+		return imagePaths{}, err
+	}
+
+	iPaths.qCOW, err = downloadFile(ctx, downloadCh, transport,
 		wkld.spec.BaseImageURL, func(firstDownload bool, p progress) {
 			if firstDownload {
 				resultCh <- types.CreateResult{
@@ -174,25 +215,41 @@ func downloadImages(ctx context.Context, wkld *workload, transport *http.Transpo
 			downloadProgress(resultCh, p)
 		})
 	if err != nil {
-		return "", "", err
+		return imagePaths{}, err
 	}
 
-	return BIOSPath, qcowPath, nil
+	return iPaths, nil
 }
 
 func createImages(ctx context.Context, wkld *workload, ws *workspace, args *types.CreateArgs,
 	transport *http.Transport, resultCh chan interface{}, downloadCh chan<- downloadRequest) error {
 
-	srcBIOSPath, qcowPath, err := downloadImages(ctx, wkld, transport, resultCh, downloadCh)
+	iPaths, err := downloadImages(ctx, wkld, transport, resultCh, downloadCh)
 	if err != nil {
 		return err
 	}
 
-	if srcBIOSPath != "" {
+	if iPaths.BIOS != "" {
 		destBIOSPath := path.Join(ws.instanceDir, "BIOS")
-		err := exec.Command("cp", srcBIOSPath, destBIOSPath).Run()
+		err := exec.Command("cp", iPaths.BIOS, destBIOSPath).Run()
 		if err != nil {
-			return errors.Wrapf(err, "Failed to copy BIOS file %s", srcBIOSPath)
+			return errors.Wrapf(err, "Failed to copy BIOS file %s", iPaths.BIOS)
+		}
+	}
+
+	if iPaths.kernel != "" {
+		destKernelPath := path.Join(ws.instanceDir, "Kernel")
+		err := exec.Command("cp", iPaths.kernel, destKernelPath).Run()
+		if err != nil {
+			return errors.Wrapf(err, "Failed to copy Kernel file %s", iPaths.kernel)
+		}
+	}
+
+	if iPaths.initRD != "" {
+		destInitRDPath := path.Join(ws.instanceDir, "initRD")
+		err := exec.Command("cp", iPaths.initRD, destInitRDPath).Run()
+		if err != nil {
+			return errors.Wrapf(err, "Failed to copy initrd file %s", iPaths.initRD)
 		}
 	}
 
@@ -201,7 +258,7 @@ func createImages(ctx context.Context, wkld *workload, ws *workspace, args *type
 		return err
 	}
 
-	err = createRootfs(ctx, qcowPath, ws.instanceDir, wkld.spec.VM.DiskGiB)
+	err = createRootfs(ctx, iPaths.qCOW, ws.instanceDir, wkld.spec.VM.DiskGiB)
 	if err != nil {
 		return err
 	}
@@ -295,7 +352,7 @@ func (c ccvmBackend) createInstance(ctx context.Context, resultCh chan interface
 
 	outputBootingMessage(args, wkld, ws, resultCh)
 
-	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM)
+	err = bootVM(ctx, ws, args.Name, &wkld.spec.VM, wkld.spec.CPU, wkld.spec.Machine, wkld.spec.KernelArgs, wkld.spec.QEMUPath)
 	if err != nil {
 		return err
 	}
@@ -354,7 +411,7 @@ func (c ccvmBackend) start(ctx context.Context, name string, customSpec *types.V
 
 	fmt.Printf("Booting VM with %d MiB RAM and %d cpus\n", in.MemMiB, in.CPUs)
 
-	err = bootVM(ctx, ws, name, in)
+	err = bootVM(ctx, ws, name, in, wkld.spec.CPU, wkld.spec.Machine, wkld.spec.KernelArgs, wkld.spec.QEMUPath)
 	if err != nil {
 		return err
 	}

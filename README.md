@@ -1,8 +1,7 @@
 # Configurable Cloud VM (ccloudvm)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/intel/ccloudvm)](https://goreportcard.com/report/github.com/intel/ccloudvm)
-[![Build Status](https://travis-ci.org/intel/ccloudvm.svg?branch=master)](https://travis-ci.org/intel/ccloudvm)
-[![Coverage Status](https://coveralls.io/repos/github/intel/ccloudvm/badge.svg?branch=master)](https://coveralls.io/github/intel/ccloudvm?branch=master)
+> [!NOTE]
+> This is a modified version of the README.md file found at github.com/intel/ccloudvm
 
 ## Introduction
 
@@ -246,6 +245,24 @@ fields are currently defined:
 - base_image_name : Friendly name for the base image.  This is optional.
 - vm              : Contains information about creating and booting the instance.
 - bios            : A URI (file, http, or https) pointing to the BIOS file, e.g, OVMF.fd, with which to boot the image.  Should be omitted for legacy boots.
+- kernel          : A URI (file, http, or https) pointing to a kernel file to use instead of the kernel image in the rootfs.
+- kernel_args     : arguments to pass to the kernel.
+- initrd          : A URI (file, http, or https) pointing to an initrd to use
+- qemu            : Executable name or full path to the QEMU binary to use
+- machine         : can be used to specify a value for QEMU's --machine option
+- cpu             : can be used to specify a value for QEMU's --cpu option.  On X86 "host" will be used if not specified.
+
+Normally, there is no need to specify kernel, kernel_args or initrd.  These settings are only required
+when you want to use a custom kernel with a cloud image.  Note ccloudvm uses the cdrom drive to store the
+cloud-config data, so the guest kernel you supply must support CDROMs.  The following kernel config options
+are required.
+
+```
+CONFIG_CDROM=y
+CONFIG_ISO9660_FS=y
+```
+
+The qemu field must be provided if the machine field is specified.
 
 The vm field supports a number of child fields.
 
@@ -556,6 +573,12 @@ will let you track qemu logs by running the below command
 nc localhost 9999
 
 You can also allow a login via this port in case ssh fails to work by modifying the workload file and changing lock_passwd to false and providing a passwd: "....." entry following that.
+
+The --cpu option can be specified to request that QEMU use a specific cpu model.  If not specified "host" will be used unless the machine type is "virt".
+
+The --qemupath option can be used to specify a full path to the qemu binary you wish to use for running the new instance.
+
+Finally, create also accepts -kernel and -kernalargs parameters that allow the user to provide a custom kernel on the command line.
 
 #### Port mappings, Mounts and Drives
 

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -42,8 +44,14 @@ type workloadSpec struct {
 	BaseImageName string       `yaml:"base_image_name"`
 	WorkloadName  string       `yaml:"workload"`
 	NeedsNestedVM bool         `yaml:"needs_nested_vm"`
+	KernelArgs    string       `yaml:"kernel_args"`
 	BIOS          string       `yaml:"bios"`
+	Kernel        string       `yaml:"kernel"`
+	InitRD        string       `yaml:"initrd"`
+	CPU           string       `yaml:"cpu"`
+	Machine       string       `yaml:"machine"`
 	VM            types.VMSpec `yaml:"vm"`
+	QEMUPath      string       `yaml:"qemu"`
 	Inherits      string       `yaml:"inherits"`
 }
 

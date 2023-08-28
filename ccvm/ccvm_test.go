@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package main
 
 import (
@@ -192,7 +194,7 @@ func TestSystem(t *testing.T) {
 	name := makeRandomName() + "-test"
 	createArgs := &types.CreateArgs{
 		Name:         name,
-		WorkloadName: "semaphore",
+		WorkloadName: "unittest",
 		CustomSpec:   *vmSpec,
 		Debug:        true,
 	}

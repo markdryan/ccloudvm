@@ -1,6 +1,10 @@
 ---
-base_image_url: https://cloud-images.ubuntu.com/artful/current/artful-server-cloudimg-amd64.img
-base_image_name: Ubuntu 17.10
+base_image_url: https://cloud-images.ubuntu.com/mantic/current/mantic-server-cloudimg-riscv64.img
+base_image_name: Ubuntu 23.10
+bios: file://usr/lib/riscv64-linux-gnu/opensbi/generic/fw_jump.bin
+kernel: file://usr/lib/u-boot/qemu-riscv64_smode/uboot.elf
+machine: virt
+qemu: qemu-system-riscv64
 vm:
   disk_gib: 16
 ...
@@ -9,14 +13,9 @@ vm:
 {{proxyVars .}}
 {{- print " DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true " -}}
 {{end}}
+
 #cloud-config
 write_files:
-{{- if len $.HTTPProxy }}
- - content: |
-     [Service]
-     Environment="HTTP_PROXY={{$.HTTPProxy}}"{{if len .HTTPSProxy}} "HTTPS_PROXY={{.HTTPSProxy}}{{end}}"{{if len .NoProxy}} "NO_PROXY={{.NoProxy}},{{.Hostname}}{{end}}"
-   path: /etc/systemd/system/docker.service.d/http-proxy.conf
-{{- end}}
 {{with proxyEnv . 5}}
  - content: |
 {{.}}
@@ -57,10 +56,10 @@ users:
   - name: {{.User}}
     uid: "{{.UID}}"
     gid: "{{.GID}}"
-    gecos: CIAO Demo User
+    gecos: {{.User}}
     lock-passwd: true
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
-    ssh-authorized-keys:
+    ssh_authorized_keys:
     - {{.PublicKey}}
 ...

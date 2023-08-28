@@ -1,0 +1,12 @@
+---
+inherits: focal
+...
+---
+packages:
+runcmd:
+{{with .Mounts}}
+ - {{beginTask $ "Downloading README file" }}
+ - su -c "{{download $ "https://raw.githubusercontent.com/markdryan/ccloudvm/markdryan/riscv/README.md" (printf "%s/down/README.md" (index . 0).Path)}}" {{$.User}}
+ - {{endTaskCheck $}}
+{{end}}
+...

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+// This is a modified version of the file found at github.com/intel/ccloudvm
+
 package types
 
 // CreateArgs contains all the information necessary to create a new
@@ -28,6 +30,10 @@ type CreateArgs struct {
 	HTTPSProxy   string
 	NoProxy      string
 	GoPath       string
+	Kernel       string
+	KernelArgs   string
+	QEMUPath     string
+	CPU          string
 }
 
 // CreateResult contains information about the status of an instance
