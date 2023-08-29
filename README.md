@@ -31,7 +31,7 @@ $ export PATH=$PATH:$(go env GOPATH)/bin
 Then, to create a new Ubuntu 16.04 VM, simply type
 
 ```
-$ go install github.com/intel/ccloudvm/...@latest
+$ go install github.com/markdryan/ccloudvm/...@latest
 $ ccloudvm setup
 $ ccloudvm create xenial
 ```
