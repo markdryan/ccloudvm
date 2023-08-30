@@ -162,7 +162,7 @@ func prepareEnv(ctx context.Context, name string) (*workspace, error) {
 	ws.GID = os.Getgid()
 
 	if dataDir != "" {
-		ws.ccvmDir = path.Join(dataDir, ".ccloudvm")
+		ws.ccvmDir = dataDir
 	} else {
 		ws.ccvmDir = path.Join(ws.Home, ".ccloudvm")
 	}
