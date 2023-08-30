@@ -600,9 +600,12 @@ DONE:
 }
 
 func makeDir() (string, error) {
-	home := os.Getenv("HOME")
+	home := os.Getenv("CCLOUDVM_DATA_DIR")
 	if home == "" {
-		return "", errors.New("HOME is not defined")
+		home = os.Getenv("HOME")
+		if home == "" {
+			return "", errors.New("HOME is not defined")
+		}
 	}
 	ccvmDir := filepath.Join(home, ".ccloudvm")
 	err := os.MkdirAll(ccvmDir, 0700)

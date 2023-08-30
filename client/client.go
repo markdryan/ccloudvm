@@ -92,7 +92,7 @@ func getGoPath() (string, error) {
 }
 
 // Setup Installs dependencies
-func Setup(ctx context.Context) error {
+func Setup(ctx context.Context, dataDir string) error {
 	home := os.Getenv("HOME")
 	if home == "" {
 		return errors.New("HOME is not defined")
@@ -115,6 +115,9 @@ func Setup(ctx context.Context) error {
 
 	servicePath := filepath.Join(systemdRootPath, "ccloudvm.service")
 	serviceData := fmt.Sprintf(systemdService, goPath)
+	if dataDir != "" {
+		serviceData += fmt.Sprintf("Environment=\"CCLOUDVM_DATA_DIR=%s\"\n", dataDir)
+	}
 	err = ioutil.WriteFile(servicePath, []byte(serviceData), 0600)
 	if err != nil {
 		return errors.Wrap(err, "Unable to write service file")
