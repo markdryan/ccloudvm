@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dataDir string
+
 var setupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "Installs dependencies and sets ccloudvm up for use",
@@ -31,10 +33,11 @@ var setupCmd = &cobra.Command{
 		ctx, cancelFunc := getSignalContext()
 		defer cancelFunc()
 
-		return client.Setup(ctx)
+		return client.Setup(ctx, dataDir)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(setupCmd)
+	setupCmd.Flags().StringVarP(&dataDir, "datadir", "d", "", "The directory where ccloudvm will store cache and instance data. ~/.ccloudvm is used if not specified")
 }

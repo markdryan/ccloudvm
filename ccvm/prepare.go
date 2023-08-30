@@ -156,10 +156,16 @@ func prepareEnv(ctx context.Context, name string) (*workspace, error) {
 		return nil, fmt.Errorf("USER is not defined")
 	}
 
+	dataDir := os.Getenv("CCLOUDVM_DATA_DIR")
+
 	ws.UID = os.Getuid()
 	ws.GID = os.Getgid()
 
-	ws.ccvmDir = path.Join(ws.Home, ".ccloudvm")
+	if dataDir != "" {
+		ws.ccvmDir = path.Join(dataDir, ".ccloudvm")
+	} else {
+		ws.ccvmDir = path.Join(ws.Home, ".ccloudvm")
+	}
 	ws.instanceDir = path.Join(ws.ccvmDir, "instances", name)
 	ws.keyPath = path.Join(ws.ccvmDir, "id_rsa")
 	ws.publicKeyPath = fmt.Sprintf("%s.pub", ws.keyPath)

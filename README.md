@@ -773,6 +773,12 @@ tool.  It delegates most of the work to a systemd user service.  This
 service is launched by socket activation and only runs when needed.
 If it has no work to do it quits.
 
+setup takes one optional parameter, -d or --datadir.  By default, ccloudvm will store all of the
+files it downloads and all of the instance data that it creates under $HOME/.ccloudvm.  This
+directory can get quite large if you have multiple instances as it will contain the rootfs files
+for those instances.  By specifying the --datadir you can opt to have your instance data stored
+elsewhere.
+
 ### teardown
 
 The ccloudvm teardown command serves two purposes:
