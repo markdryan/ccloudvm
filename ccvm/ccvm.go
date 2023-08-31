@@ -205,15 +205,7 @@ func downloadImages(ctx context.Context, wkld *workload, transport *http.Transpo
 		return imagePaths{}, err
 	}
 
-	iPaths.qCOW, err = downloadFile(ctx, downloadCh, transport,
-		wkld.spec.BaseImageURL, func(firstDownload bool, p progress) {
-			if firstDownload {
-				resultCh <- types.CreateResult{
-					Line: fmt.Sprintf("Downloading %s\n", wkld.spec.BaseImageName),
-				}
-			}
-			downloadProgress(resultCh, p)
-		})
+	iPaths.qCOW, err = downloadOrCopy(ctx, wkld.spec.BaseImageURL, transport, resultCh, downloadCh)
 	if err != nil {
 		return imagePaths{}, err
 	}
