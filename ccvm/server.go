@@ -30,6 +30,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"sort"
 	"sync"
 	"syscall"
@@ -103,7 +104,7 @@ type ccvmService struct {
 	shutdownTimer *time.Timer
 	transactions  map[int]transaction
 	cases         []reflect.SelectCase
-	hostIPs       map[uint32]struct{}
+	hostIPs       map[uint32]map[int]struct{}
 	instances     map[string]chan instanceCmd
 	hostIPMask    uint32
 	instanceChMap map[chan struct{}]string
@@ -202,12 +203,16 @@ func flattenIP(ip net.IP) (uint32, error) {
 	return uint32(ip4[0])<<24 | uint32(ip4[1])<<16 | uint32(ip4[2])<<8 | uint32(ip4[3]), nil
 }
 
-func (s *ccvmService) startInstanceLoop(name string, flatIP uint32) chan instanceCmd {
+func (s *ccvmService) startInstanceLoop(name string, flatIP uint32, sshPort int) chan instanceCmd {
 	instanceCh := make(chan instanceCmd)
 	closeCh := make(chan struct{})
 	s.instances[name] = instanceCh
 	s.instanceChMap[closeCh] = name
-	s.hostIPs[flatIP] = struct{}{}
+	_, ok := s.hostIPs[flatIP]
+	if !ok {
+		s.hostIPs[flatIP] = make(map[int]struct{})
+	}
+	s.hostIPs[flatIP][sshPort] = struct{}{}
 	s.instanceWg.Add(1)
 	go instanceLoop(name, instanceCh, closeCh, &s.instanceWg)
 	s.cases = append(s.cases, reflect.SelectCase{
@@ -262,14 +267,16 @@ func (s *ccvmService) findExistingInstances() {
 			return filepath.SkipDir
 		}
 
-		if _, ok := s.hostIPs[flatIP]; ok {
-			fmt.Printf("Host IP address already in use %s\n", details.VMSpec.HostIP)
-			return filepath.SkipDir
+		if ports, ok := s.hostIPs[flatIP]; ok {
+			if _, ok = ports[details.SSH.Port]; ok {
+				fmt.Printf("Host IP %s address and port %d already in use \n", details.VMSpec.HostIP, details.SSH.Port)
+				return filepath.SkipDir
+			}
 		}
 
-		fmt.Printf("Starting instance %s on %s\n", info.Name(), details.VMSpec.HostIP)
+		fmt.Printf("Starting instance %s on %s SSH port %d\n", info.Name(), details.VMSpec.HostIP, details.SSH.Port)
 
-		_ = s.startInstanceLoop(info.Name(), flatIP)
+		_ = s.startInstanceLoop(info.Name(), flatIP, details.SSH.Port)
 
 		return filepath.SkipDir
 	})
@@ -336,31 +343,66 @@ func (s *ccvmService) create(ctx context.Context, resultCh chan interface{}, arg
 	}
 
 	var flatIP uint32
+	var err error
 	if len(args.CustomSpec.HostIP) == 0 {
-		hostIP, i, err := s.findFreeIP()
-		if err != nil {
-			resultCh <- err
-			close(resultCh)
-			return
+		if runtime.GOOS != "darwin" {
+			hostIP, i, err := s.findFreeIP()
+			if err != nil {
+				resultCh <- err
+				close(resultCh)
+				return
+			}
+			args.CustomSpec.HostIP = hostIP
+			flatIP = i
+		} else {
+			args.CustomSpec.HostIP = net.ParseIP("127.0.0.1")
+			flatIP, err = flattenIP(args.CustomSpec.HostIP)
+			if err != nil {
+				resultCh <- err
+				close(resultCh)
+				return
+			}
 		}
-		args.CustomSpec.HostIP = hostIP
-		flatIP = i
 	} else {
-		flatIP, err := flattenIP(args.CustomSpec.HostIP)
+		flatIP, err = flattenIP(args.CustomSpec.HostIP)
 		if err != nil {
 			resultCh <- err
-			close(resultCh)
-			return
-		}
-		_, ok := s.hostIPs[flatIP]
-		if ok {
-			resultCh <- errors.Errorf("IP address %s is already in use", args.CustomSpec.HostIP)
 			close(resultCh)
 			return
 		}
 	}
 
-	instanceCh := s.startInstanceLoop(args.Name, flatIP)
+	ports, ok := s.hostIPs[flatIP]
+	var hostPort int
+	if ok {
+		for _, pm := range args.CustomSpec.PortMappings {
+			if pm.Guest == 22 {
+				hostPort = pm.Host
+			}
+			if _, ok := ports[pm.Host]; ok {
+				resultCh <- errors.Errorf("IP address %s and port %d is already in use", args.CustomSpec.HostIP, pm.Host)
+				close(resultCh)
+				return
+			}
+		}
+
+		if hostPort == 0 {
+			for hostPort = 10022; hostPort < 10100; hostPort++ {
+				if _, ok := ports[hostPort]; !ok {
+					break
+				}
+			}
+
+			if hostPort == 10100 {
+				resultCh <- errors.Errorf("No host ports available for hostIP %s", args.CustomSpec.HostIP)
+				close(resultCh)
+				return
+			}
+			args.CustomSpec.PortMappings = append(args.CustomSpec.PortMappings, types.PortMapping{Guest: 22, Host: hostPort})
+		}
+	}
+
+	instanceCh := s.startInstanceLoop(args.Name, flatIP, hostPort)
 	instanceCh <- instanceCmd{
 		cmdType:  instanceCmdCreate,
 		resultCh: resultCh,
@@ -696,7 +738,7 @@ func startServer(signalCh chan os.Signal) error {
 			downloadCh:    downloadCh,
 			instances:     make(map[string]chan instanceCmd),
 			instanceChMap: make(map[chan struct{}]string),
-			hostIPs:       make(map[uint32]struct{}),
+			hostIPs:       make(map[uint32]map[int]struct{}),
 			hostIPMask:    0x7f000000 | uint32((os.Getuid()&0xffff)<<8),
 			b:             ccvmBackend{},
 		}

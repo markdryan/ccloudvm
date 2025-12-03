@@ -28,6 +28,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -154,6 +155,10 @@ func createDownloader() (*downloader, error) {
 }
 
 func TestSystem(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		/* We need to skip for now as this test will need a BIOS in a known location */
+		t.Skip()
+	}
 	b := ccvmBackend{}
 	ctx, cancelFunc := context.WithTimeout(context.Background(), standardTimeout)
 	defer func() {
