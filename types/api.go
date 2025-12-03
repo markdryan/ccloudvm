@@ -30,6 +30,7 @@ type CreateArgs struct {
 	HTTPSProxy   string
 	NoProxy      string
 	GoPath       string
+	BIOS         string
 	Kernel       string
 	KernelArgs   string
 	QEMUPath     string

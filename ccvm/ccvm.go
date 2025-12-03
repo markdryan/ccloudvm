@@ -79,6 +79,10 @@ func prepareCreate(ctx context.Context, args *types.CreateArgs) (*workload, *wor
 		return nil, nil, nil, err
 	}
 
+	if args.BIOS != "" {
+		wkld.spec.BIOS = args.BIOS
+	}
+
 	if args.Kernel != "" {
 		wkld.spec.Kernel = args.Kernel
 	}
