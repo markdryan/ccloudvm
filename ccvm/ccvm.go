@@ -48,7 +48,7 @@ type ccvmBackend struct{}
 func checkMemAvailable(in *types.VMSpec) error {
 	_, available := deviceinfo.GetMemoryInfo()
 	if available == -1 {
-		return fmt.Errorf("Unable to compute memory statistics of host device")
+		return nil
 	}
 
 	if in.MemMiB > available {
