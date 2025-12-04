@@ -48,7 +48,7 @@ type ccvmBackend struct{}
 func checkMemAvailable(in *types.VMSpec) error {
 	_, available := deviceinfo.GetMemoryInfo()
 	if available == -1 {
-		return fmt.Errorf("Unable to compute memory statistics of host device")
+		return nil
 	}
 
 	if in.MemMiB > available {
@@ -77,6 +77,10 @@ func prepareCreate(ctx context.Context, args *types.CreateArgs) (*workload, *wor
 	wkld, err := createWorkload(ctx, ws, args.WorkloadName, transport)
 	if err != nil {
 		return nil, nil, nil, err
+	}
+
+	if args.BIOS != "" {
+		wkld.spec.BIOS = args.BIOS
 	}
 
 	if args.Kernel != "" {

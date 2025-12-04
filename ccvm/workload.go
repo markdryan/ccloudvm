@@ -33,6 +33,8 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"runtime"
+	"strings"
 	"text/template"
 	"time"
 
@@ -242,6 +244,10 @@ func (wkld *workload) merge(parent *workload) {
 		wkld.spec.InitRD = parent.spec.InitRD
 	}
 
+	if wkld.spec.BIOS == "" {
+		wkld.spec.BIOS = parent.spec.BIOS
+	}
+
 	wkld.spec.VM.Merge(&parent.spec.VM)
 }
 
@@ -316,7 +322,31 @@ func (wkld *workload) parse(ws *workspace) (cloudConfig, error) {
 	}
 
 	var udBuf bytes.Buffer
-	err = udt.Execute(&udBuf, ws)
+	if runtime.GOOS == "darwin" {
+		// hack for macos to map /Users/homedir to /home/homedir
+
+		oldMounts := make([]string, len(ws.Mounts))
+		oldHome := ws.Home
+		for i := range ws.Mounts {
+			oldMounts[i] = ws.Mounts[i].Path
+			if strings.HasPrefix(ws.Mounts[i].Path, "/Users/") {
+				ws.Mounts[i].Path = "/home" + ws.Mounts[i].Path[len("/Users"):]
+			}
+		}
+		if strings.HasPrefix(ws.Home, "/Users/") {
+			ws.Home = "/home" + ws.Home[len("/Users"):]
+		}
+
+		err = udt.Execute(&udBuf, ws)
+
+		ws.Home = oldHome
+		for i := range ws.Mounts {
+			ws.Mounts[i].Path = oldMounts[i]
+		}
+	} else {
+		err = udt.Execute(&udBuf, ws)
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to execute user data template")
 	}

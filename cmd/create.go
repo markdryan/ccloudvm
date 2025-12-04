@@ -57,6 +57,7 @@ var createMOptsSpec multiOptions
 var createDebug bool
 var createPackageUpgrade bool
 var createHostIP ipAddr
+var bios string
 var kernel string
 var kernelArgs string
 var qemuPath string
@@ -72,7 +73,7 @@ var createCmd = &cobra.Command{
 
 		mergeVMOptions(&createSpec, &createMOptsSpec)
 		createSpec.HostIP = net.IP(createHostIP)
-		return client.Create(ctx, instanceName, args[0], createDebug, createPackageUpgrade, &createSpec, kernel, kernelArgs, qemuPath, cpu)
+		return client.Create(ctx, instanceName, args[0], createDebug, createPackageUpgrade, &createSpec, bios, kernel, kernelArgs, qemuPath, cpu)
 	},
 }
 
@@ -88,6 +89,7 @@ func init() {
 	createCmd.Flags().BoolVar(&createDebug, "debug", false, "Enable debugging mode")
 	createCmd.Flags().BoolVar(&createPackageUpgrade, "package-upgrade", false, "Hint as to whether to upgrade packages on creation")
 	createCmd.Flags().Var(&createHostIP, "hostip", "Host IP address on which instance services will be exposed")
+	createCmd.Flags().StringVar(&bios, "bios", "", "URI of the BIOS to use")
 	createCmd.Flags().StringVar(&kernel, "kernel", "", "URI of kernel to use")
 	createCmd.Flags().StringVar(&kernelArgs, "kernelargs", "", "Arguments to pass to kernel")
 	createCmd.Flags().StringVar(&qemuPath, "qemupath", "", "Full path to QEMU binary")

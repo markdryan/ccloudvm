@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -93,12 +94,23 @@ func bootVM(ctx context.Context, ws *workspace, name string, in *types.VMSpec, c
 	} else {
 		args = append(args, "-machine", machine)
 
-		if cpu != "" {
-			args = append(args, "-cpu", cpu)
-		}
+		if qemuPath == "qemu-system-aarch64" {
+			if runtime.GOOS == "darwin" {
+				args = append(args, "-accel", "hvf")
+			}
+			if cpu == "" {
+				args = append(args, "-cpu", "host")
+			} else {
+				args = append(args, "-cpu", cpu)
+			}
+		} else {
+			if cpu != "" {
+				args = append(args, "-cpu", cpu)
+			}
 
-		if qemuPath == "" {
-			return fmt.Errorf("qemu_path must be specified --machine is set")
+			if qemuPath == "" {
+				return fmt.Errorf("qemu_path must be specified --machine is set")
+			}
 		}
 
 		qemuExe = qemuPath

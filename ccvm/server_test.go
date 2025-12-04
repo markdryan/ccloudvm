@@ -123,7 +123,7 @@ func setupServer(t *testing.T, b backend, wg *sync.WaitGroup) (string, chan inte
 			downloadCh:    downloadCh,
 			instances:     make(map[string]chan instanceCmd),
 			instanceChMap: make(map[chan struct{}]string),
-			hostIPs:       make(map[uint32]struct{}),
+			hostIPs:       make(map[uint32]map[int]struct{}),
 			hostIPMask:    0x7f000000 | uint32((os.Getuid()&0xffff)<<8),
 			b:             b,
 		}
@@ -159,7 +159,7 @@ func setupServerWithInstances(t *testing.T, b backend, wg *sync.WaitGroup, insta
 			downloadCh:    downloadCh,
 			instances:     make(map[string]chan instanceCmd),
 			instanceChMap: make(map[chan struct{}]string),
-			hostIPs:       make(map[uint32]struct{}),
+			hostIPs:       make(map[uint32]map[int]struct{}),
 			hostIPMask:    0x7f000000 | uint32((os.Getuid()&0xffff)<<8),
 			b:             b,
 		}
